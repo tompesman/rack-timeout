@@ -13,7 +13,9 @@ module Rack
     end
 
     def call(env)
-      SystemTimer.timeout(self.class.timeout, ::Timeout::Error) { @app.call(env) }
+      status, headers, response = SystemTimer.timeout(self.class.timeout, ::Timeout::Error) { @app.call(env) }
+      Rails.logger.info "Timeout::Error env: #{env}" if status == 500
+      [status, headers, response]
     end
 
   end
