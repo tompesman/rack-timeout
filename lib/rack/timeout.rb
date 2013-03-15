@@ -13,23 +13,18 @@ module Rack
     end
 
     def call(env)
-      t0, t, path = Time.now.utc, self.class.timeout, env['REQUEST_PATH']
+      t, path, req_id = self.class.timeout, env['REQUEST_PATH'], env['HTTP_HEROKU_REQUEST_ID']
       begin
-        log "about to start handling request for %s with a timeout of %d seconds.", path, t
         retval = ::Timeout.timeout(self.class.timeout, ::Timeout::Error) { @app.call(env) }
-        t1 = Time.now.utc
       rescue ::Timeout::Error
-        log "request for %s aborted after a timeout of %d seconds.", path, t
-        log "request env: %s", env.inspect
+        log req_id, "request for %s aborted after a timeout of %d seconds.", path, t, env.inspect
         raise
       end
-      log "request for %s completed in about %0.2f seconds.", path, (t1 - t0)
       retval
     end
 
-    def log(s, *vs)
-      $stderr.puts "rack-timeout: #{s}" % vs
+    def log(req_id, s, *vs)
+      $stderr.puts "rack-timeout:#{" (request_id=#{req_id})" if req_id} #{s}" % vs
     end
-
   end
 end
