@@ -17,14 +17,14 @@ module Rack
       begin
         retval = ::Timeout.timeout(self.class.timeout, ::Timeout::Error) { @app.call(env) }
       rescue ::Timeout::Error
-        log req_id, "request for %s aborted after a timeout of %d seconds.", path, t, env.inspect
+        log req_id, "request for %s aborted after a timeout of %d seconds. env: %s", path, t, env.inspect
         raise
       end
       retval
     end
 
     def log(req_id, s, *vs)
-      $stderr.puts "rack-timeout:#{" (request_id=#{req_id})" if req_id} #{s}" % vs
+      $stderr.puts "rack-timeout:#{" request_id=#{req_id}" if req_id} #{s}" % vs
     end
   end
 end
